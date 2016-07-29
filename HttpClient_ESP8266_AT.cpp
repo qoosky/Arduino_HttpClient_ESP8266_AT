@@ -1,13 +1,25 @@
 #include "HttpClient_ESP8266_AT.h"
 
-HttpClient_ESP8266_AT::HttpClient_ESP8266_AT(uint32_t rxPin, uint32_t txPin, uint32_t baud)
+HttpClient_ESP8266_AT::HttpClient_ESP8266_AT(uint32_t rxPin, uint32_t txPin, uint32_t baud) :
+    m_rxPin(rxPin), m_txPin(txPin)
 {
-    m_serial = new SoftwareSerial(rxPin, txPin);
-    m_serial->begin(baud);
+    SoftwareSerial *serial = new SoftwareSerial(rxPin, txPin);
+    serial->begin(baud);
+    m_serial = serial;
+}
+
+HttpClient_ESP8266_AT::HttpClient_ESP8266_AT(SoftwareSerial &serial) :
+    m_rxPin(0), m_txPin(0), m_serial(&serial)
+{
+}
+
+HttpClient_ESP8266_AT::HttpClient_ESP8266_AT(HardwareSerial &serial) :
+    m_rxPin(0), m_txPin(0), m_serial(&serial)
+{
 }
 
 HttpClient_ESP8266_AT::~HttpClient_ESP8266_AT() {
-    delete m_serial;
+    if(m_rxPin != 0 && m_txPin !=0) delete m_serial;
 }
 
 void HttpClient_ESP8266_AT::rxClear() {
@@ -26,11 +38,16 @@ bool HttpClient_ESP8266_AT::statusAT() {
     const String target = "OK";
     while (millis() - start < timeout) {
         while(m_serial->available() > 0) {
-            c = m_serial->read(); // read 1 byte
+            c = m_serial->read(); // 1 byte
             if(c == '\0') continue;
             str += c;
         }
         if (str.indexOf(target) != -1) return true;
     }
     return false;
+}
+
+bool HttpClient_ESP8266_AT::connect(String ssid, String password) {
+    rxClear();
+    return true; // TODO
 }
