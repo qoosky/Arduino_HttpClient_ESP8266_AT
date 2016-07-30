@@ -4,8 +4,10 @@
 #include "lib_HttpClient_ESP8266_AT.h"
 #include <Arduino.h>
 #include <SoftwareSerial.h>
+#include <Client.h>
 
-class HttpClient_ESP8266_AT
+class HttpClient_ESP8266_AT :
+    public Client
 {
  private:
     // SoftwareSerial rx and tx pins
@@ -52,6 +54,10 @@ class HttpClient_ESP8266_AT
     String responseBody();
 
  private:
+    // (Re)create internal http client
+    void createHttpClient(const String& host, uint32_t port);
+
+ private:
     // Clear rx buffer
     void rxClear();
 
@@ -66,6 +72,23 @@ class HttpClient_ESP8266_AT
     // Arduino HTTP Client library
     // https://github.com/arduino-libraries/ArduinoHttpClient
     HttpClient *m_httpClient;
+
+ private:
+    // As a sub class of `Client`, these methods need to be implemented.
+    // see. https://www.arduino.cc/en/Reference/ClientConstructor
+    //      https://github.com/arduino/Arduino/blob/master/hardware/arduino/avr/cores/arduino/Client.h
+    virtual int connect(IPAddress ip, uint16_t port);
+    virtual int connect(const char *host, uint16_t port);
+    virtual size_t write(uint8_t);
+    virtual size_t write(const uint8_t *buf, size_t size);
+    virtual int available();
+    virtual int read();
+    virtual int read(uint8_t *buf, size_t size);
+    virtual int peek();
+    virtual void flush();
+    virtual void stop();
+    virtual uint8_t connected();
+    virtual operator bool();
 };
 
 #endif // #ifndef HTTPCLIENT_ESP8266_AT_H_

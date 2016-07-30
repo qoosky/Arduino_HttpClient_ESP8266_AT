@@ -1,7 +1,7 @@
 #include "HttpClient_ESP8266_AT.h"
 
 HttpClient_ESP8266_AT::HttpClient_ESP8266_AT(uint32_t rxPin, uint32_t txPin, uint32_t baud) :
-    m_rxPin(rxPin), m_txPin(txPin)
+    m_rxPin(rxPin), m_txPin(txPin), m_httpClient(NULL)
 {
     SoftwareSerial *serial = new SoftwareSerial(rxPin, txPin);
     serial->begin(baud);
@@ -9,17 +9,18 @@ HttpClient_ESP8266_AT::HttpClient_ESP8266_AT(uint32_t rxPin, uint32_t txPin, uin
 }
 
 HttpClient_ESP8266_AT::HttpClient_ESP8266_AT(SoftwareSerial &serial) :
-    m_rxPin(0), m_txPin(0), m_serial(&serial)
+    m_rxPin(0), m_txPin(0), m_serial(&serial), m_httpClient(NULL)
 {
 }
 
 HttpClient_ESP8266_AT::HttpClient_ESP8266_AT(HardwareSerial &serial) :
-    m_rxPin(0), m_txPin(0), m_serial(&serial)
+    m_rxPin(0), m_txPin(0), m_serial(&serial), m_httpClient(NULL)
 {
 }
 
 HttpClient_ESP8266_AT::~HttpClient_ESP8266_AT() {
     disconnect();
+    if(m_httpClient != NULL) delete m_httpClient;
     if(m_rxPin != 0 && m_txPin !=0) delete m_serial;
 }
 
@@ -100,12 +101,19 @@ bool HttpClient_ESP8266_AT::statusWiFi() {
     return (stat != 5);
 }
 
+void HttpClient_ESP8266_AT::createHttpClient(const String& host, uint32_t port) {
+    if(m_httpClient != NULL) delete m_httpClient;
+    m_httpClient = new HttpClient(*this, host, port); // HttpClient_ESP8266_AT (this) and HttpClient refers to each other
+}
+
 bool HttpClient_ESP8266_AT::get(const String& host, const String& path, uint32_t port) {
+    createHttpClient(host, port);
     return true; // TODO
 }
 
 bool HttpClient_ESP8266_AT::post(const String& host, const String& path, const String& body,
                                  const String& contentType, uint32_t port) {
+    createHttpClient(host, port);
     return true; // TODO
 }
 
@@ -115,4 +123,52 @@ int HttpClient_ESP8266_AT::responseStatusCode() {
 
 String HttpClient_ESP8266_AT::responseBody() {
     return "BODY"; // TODO
+}
+
+int HttpClient_ESP8266_AT::connect(IPAddress ip, uint16_t port) {
+    return 0; // TODO
+}
+
+int HttpClient_ESP8266_AT::connect(const char *host, uint16_t port) {
+    return 0; // TODO
+}
+
+size_t HttpClient_ESP8266_AT::write(uint8_t) {
+    return 0; // TODO
+}
+
+size_t HttpClient_ESP8266_AT::write(const uint8_t *buf, size_t size) {
+    return 0; // TODO
+}
+
+int HttpClient_ESP8266_AT::available() {
+    return 0; // TODO
+}
+
+int HttpClient_ESP8266_AT::read() {
+    return 0; // TODO
+}
+
+int HttpClient_ESP8266_AT::read(uint8_t *buf, size_t size) {
+    return 0; // TODO
+}
+
+int HttpClient_ESP8266_AT::peek() {
+    return 0; // TODO
+}
+
+void HttpClient_ESP8266_AT::flush() {
+    // TODO
+}
+
+void HttpClient_ESP8266_AT::stop() {
+    // TODO
+}
+
+uint8_t HttpClient_ESP8266_AT::connected() {
+    return 0; // TODO
+}
+
+HttpClient_ESP8266_AT::operator bool() {
+    // TODO
 }
