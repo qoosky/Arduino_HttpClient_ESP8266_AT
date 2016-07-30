@@ -50,8 +50,8 @@ class HttpClient_ESP8266_AT :
               const String& contentType = "application/x-www-form-urlencoded", uint32_t port = 80);
 
     // HTTP response of the last request
-    int responseStatusCode();
-    String responseBody();
+    int responseStatusCode(); // MUST be called before responseBody()
+    String responseBody(); // MUST be called after responseStatusCode()
 
  private:
     // (Re)create internal http client

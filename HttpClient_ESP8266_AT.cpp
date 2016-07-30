@@ -108,21 +108,21 @@ void HttpClient_ESP8266_AT::createHttpClient(const String& host, uint32_t port) 
 
 bool HttpClient_ESP8266_AT::get(const String& host, const String& path, uint32_t port) {
     createHttpClient(host, port);
-    return true; // TODO
+    return (HTTP_SUCCESS == m_httpClient->get(path));
 }
 
 bool HttpClient_ESP8266_AT::post(const String& host, const String& path, const String& body,
                                  const String& contentType, uint32_t port) {
     createHttpClient(host, port);
-    return true; // TODO
+    return (HTTP_SUCCESS == m_httpClient->post(path, contentType, body));
 }
 
 int HttpClient_ESP8266_AT::responseStatusCode() {
-    return 200; // TODO
+    return m_httpClient->responseStatusCode();
 }
 
 String HttpClient_ESP8266_AT::responseBody() {
-    return "BODY"; // TODO
+    return m_httpClient->responseBody();
 }
 
 int HttpClient_ESP8266_AT::connect(IPAddress ip, uint16_t port) {
