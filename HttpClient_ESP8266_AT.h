@@ -47,7 +47,7 @@ class HttpClient_ESP8266_AT
 
     // Check the response for the last AT command is "OK"
     bool checkATResponse(String target = "OK", uint32_t timeout = 1000);
-    bool checkATResponse(String &buf, String target = "OK", uint32_t timeout = 1000); // store the data into buffer
+    bool checkATResponse(String *buf, String target = "OK", uint32_t timeout = 1000); // store the data into buffer
 };
 
 #endif // #ifndef HTTPCLIENT_ESP8266_AT_H_

@@ -27,24 +27,24 @@ void HttpClient_ESP8266_AT::rxClear() {
     while(m_serial->available() > 0) m_serial->read();
 }
 
-bool HttpClient_ESP8266_AT::checkATResponse(String &buf, String target, uint32_t timeout) {
-    buf = "";
+bool HttpClient_ESP8266_AT::checkATResponse(String *buf, String target, uint32_t timeout) {
+    *buf = "";
     char c;
     unsigned long start = millis();
     while (millis() - start < timeout) {
         while(m_serial->available() > 0) {
             c = m_serial->read(); // 1 byte
             if(c == '\0') continue;
-            buf += c;
+            *buf += c;
         }
-        if (buf.indexOf(target) != -1) return true;
+        if (buf->indexOf(target) != -1) return true;
     }
     return false;
 }
 
 bool HttpClient_ESP8266_AT::checkATResponse(String target, uint32_t timeout) {
     String buf;
-    return checkATResponse(buf, target, timeout);
+    return checkATResponse(&buf, target, timeout);
 }
 
 bool HttpClient_ESP8266_AT::statusAT() {
@@ -94,7 +94,7 @@ bool HttpClient_ESP8266_AT::statusWiFi() {
     String buf;
     rxClear();
     m_serial->println("AT+CIPSTATUS");
-    checkATResponse(buf, "OK", 10000);
+    checkATResponse(&buf, "OK", 10000);
     uint32_t index = buf.indexOf(":");
     uint8_t stat = buf.substring(index + 1, index + 2).toInt();
     return (stat != 5);
