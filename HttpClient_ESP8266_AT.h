@@ -1,6 +1,7 @@
 #ifndef HTTPCLIENT_ESP8266_AT_H_
 #define HTTPCLIENT_ESP8266_AT_H_
 
+#include "lib_HttpClient_ESP8266_AT.h"
 #include <Arduino.h>
 #include <SoftwareSerial.h>
 
@@ -38,6 +39,18 @@ class HttpClient_ESP8266_AT
     bool connect(String ssid, String password);
     bool disconnect();
 
+ public:
+    // HTTP GET and POST
+    // - return true if successful, else error
+    // - SSL/TLS is not supported
+    bool get(const String& host, const String& path, uint32_t port = 80);
+    bool post(const String& host, const String& path, const String& body,
+              const String& contentType = "application/x-www-form-urlencoded", uint32_t port = 80);
+
+    // HTTP response of the last request
+    int responseStatusCode();
+    String responseBody();
+
  private:
     // Clear rx buffer
     void rxClear();
@@ -48,6 +61,11 @@ class HttpClient_ESP8266_AT
     // Check the response for the last AT command is "OK"
     bool checkATResponse(String target = "OK", uint32_t timeout = 1000);
     bool checkATResponse(String *buf, String target = "OK", uint32_t timeout = 1000); // store the data into buffer
+
+ private:
+    // Arduino HTTP Client library
+    // https://github.com/arduino-libraries/ArduinoHttpClient
+    HttpClient *m_httpClient;
 };
 
 #endif // #ifndef HTTPCLIENT_ESP8266_AT_H_
