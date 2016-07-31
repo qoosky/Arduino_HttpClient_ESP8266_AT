@@ -1,12 +1,11 @@
-#ifndef HTTPCLIENT_ESP8266_AT_H_
-#define HTTPCLIENT_ESP8266_AT_H_
+#ifndef ESP8266_AT_H_
+#define ESP8266_AT_H_
 
-#include "lib_HttpClient_ESP8266_AT.h"
 #include <Arduino.h>
 #include <SoftwareSerial.h>
 #include <Client.h>
 
-class HttpClient_ESP8266_AT :
+class ESP8266_AT :
     public Client
 {
  private:
@@ -22,13 +21,13 @@ class HttpClient_ESP8266_AT :
     // - Create SoftwareSerial inside the constructor
     //   rxPin: Wire this to Tx Pin of ESP8266
     //   txPin: Wire this to Rx Pin of ESP8266
-    HttpClient_ESP8266_AT(uint32_t rxPin, uint32_t txPin, uint32_t baud = 115200);
+    ESP8266_AT(uint32_t rxPin, uint32_t txPin, uint32_t baud = 115200);
     // - Construct from SoftwareSerial or HardwareSerial
-    HttpClient_ESP8266_AT(SoftwareSerial &serial);
-    HttpClient_ESP8266_AT(HardwareSerial &serial);
+    ESP8266_AT(SoftwareSerial &serial);
+    ESP8266_AT(HardwareSerial &serial);
 
     // Destructor
-    ~HttpClient_ESP8266_AT();
+    ~ESP8266_AT();
 
  public:
     // Health check of the serial interface
@@ -41,22 +40,6 @@ class HttpClient_ESP8266_AT :
     bool connect(String ssid, String password);
     bool disconnect();
 
- public:
-    // HTTP GET and POST
-    // - return true if successful, else error
-    // - SSL/TLS is not supported
-    bool get(const String& host, const String& path, uint32_t port = 80);
-    bool post(const String& host, const String& path, const String& body,
-              const String& contentType = "application/x-www-form-urlencoded", uint32_t port = 80);
-
-    // HTTP response of the last request
-    int responseStatusCode(); // MUST be called before responseBody()
-    String responseBody(); // MUST be called after responseStatusCode()
-
- private:
-    // (Re)create internal http client
-    void createHttpClient(const String& host, uint32_t port);
-
  private:
     // Clear rx buffer
     void rxClear();
@@ -67,11 +50,6 @@ class HttpClient_ESP8266_AT :
     // Check the response for the last AT command is "OK"
     bool checkATResponse(String target = "OK", uint32_t timeout = 1000);
     bool checkATResponse(String *buf, String target = "OK", uint32_t timeout = 1000); // store the data into buffer
-
- private:
-    // Arduino HTTP Client library
-    // https://github.com/arduino-libraries/ArduinoHttpClient
-    HttpClient *m_httpClient;
 
  private:
     // As a sub class of `Client`, these methods need to be implemented.
@@ -91,4 +69,4 @@ class HttpClient_ESP8266_AT :
     virtual operator bool();
 };
 
-#endif // #ifndef HTTPCLIENT_ESP8266_AT_H_
+#endif // #ifndef ESP8266_AT_H_
