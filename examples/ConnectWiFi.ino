@@ -1,19 +1,18 @@
-#include <ESP8266_AT.h>
-#include "config.h"
+#include <HttpClient_ESP8266_AT.h>
 
 // Three types of the constructors:
 
-// 1. Create SoftwareSerial inside ESP8266_AT class
+// 1. Create SoftwareSerial inside HttpClient_ESP8266_AT class
 const byte rxPin = 2; // Wire this to Tx Pin of ESP8266
 const byte txPin = 3; // Wire this to Rx Pin of ESP8266
-ESP8266_AT wifi(rxPin, txPin);
+HttpClient_ESP8266_AT httpClient(rxPin, txPin);
 
 // 2. Provide SoftwareSerial
 //SoftwareSerial softwareSerial(rxPin, txPin);
-//ESP8266_AT wifi(softwareSerial);
+//HttpClient_ESP8266_AT httpClient(softwareSerial);
 
 // 3. Provide HardwareSerial
-//ESP8266_AT wifi(Serial);
+//HttpClient_ESP8266_AT httpClient(Serial);
 
 
 void setup() {
@@ -24,7 +23,7 @@ void setup() {
 
     // Check the status of the ESP8266 AT command interface.
     while(true) {
-        if(wifi.statusAT()) {
+        if(httpClient.statusAT()) {
             Serial.println("AT status OK");
             break;
         }
@@ -36,7 +35,7 @@ void setup() {
 
     // Connect to an AP
     while(true) {
-        if(wifi.connectAP(ssid, pass)) {
+        if(httpClient.connectAP("SSID", "PASSWORD")) {
             Serial.println("Successfully connected to an AP");
             break;
         }
@@ -49,7 +48,7 @@ void setup() {
 
 void loop() {
     // Continue to check the status of the WiFi connectivity
-    if(wifi.statusWiFi()) {
+    if(httpClient.statusWiFi()) {
         Serial.println("WiFi status OK");
     }
     else {

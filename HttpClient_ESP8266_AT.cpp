@@ -1,6 +1,6 @@
-#include "ESP8266_AT.h"
+#include "HttpClient_ESP8266_AT.h"
 
-ESP8266_AT::ESP8266_AT(uint32_t rxPin, uint32_t txPin, uint32_t baud) :
+HttpClient_ESP8266_AT::HttpClient_ESP8266_AT(uint32_t rxPin, uint32_t txPin, uint32_t baud) :
     m_rxPin(rxPin), m_txPin(txPin)
 {
     SoftwareSerial *serial = new SoftwareSerial(rxPin, txPin);
@@ -8,26 +8,26 @@ ESP8266_AT::ESP8266_AT(uint32_t rxPin, uint32_t txPin, uint32_t baud) :
     m_serial = serial;
 }
 
-ESP8266_AT::ESP8266_AT(SoftwareSerial &serial) :
+HttpClient_ESP8266_AT::HttpClient_ESP8266_AT(SoftwareSerial &serial) :
     m_rxPin(0), m_txPin(0), m_serial(&serial)
 {
 }
 
-ESP8266_AT::ESP8266_AT(HardwareSerial &serial) :
+HttpClient_ESP8266_AT::HttpClient_ESP8266_AT(HardwareSerial &serial) :
     m_rxPin(0), m_txPin(0), m_serial(&serial)
 {
 }
 
-ESP8266_AT::~ESP8266_AT() {
+HttpClient_ESP8266_AT::~HttpClient_ESP8266_AT() {
     disconnectAP();
     if(m_rxPin != 0 && m_txPin !=0) delete m_serial;
 }
 
-void ESP8266_AT::rxClear() {
+void HttpClient_ESP8266_AT::rxClear() {
     while(m_serial->available() > 0) m_serial->read();
 }
 
-bool ESP8266_AT::checkATResponse(String *buf, String target, uint32_t timeout) {
+bool HttpClient_ESP8266_AT::checkATResponse(String *buf, String target, uint32_t timeout) {
     *buf = "";
     char c;
     unsigned long start = millis();
@@ -42,18 +42,18 @@ bool ESP8266_AT::checkATResponse(String *buf, String target, uint32_t timeout) {
     return false;
 }
 
-bool ESP8266_AT::checkATResponse(String target, uint32_t timeout) {
+bool HttpClient_ESP8266_AT::checkATResponse(String target, uint32_t timeout) {
     String buf;
     return checkATResponse(&buf, target, timeout);
 }
 
-bool ESP8266_AT::statusAT() {
+bool HttpClient_ESP8266_AT::statusAT() {
     rxClear();
     m_serial->println("AT");
     return checkATResponse();
 }
 
-bool ESP8266_AT::restart() {
+bool HttpClient_ESP8266_AT::restart() {
     rxClear();
     m_serial->println("AT+RST");
     if(!checkATResponse()) return false;
@@ -69,7 +69,7 @@ bool ESP8266_AT::restart() {
     return false;
 }
 
-bool ESP8266_AT::connectAP(String ssid, String password) {
+bool HttpClient_ESP8266_AT::connectAP(String ssid, String password) {
     rxClear();
     m_serial->println("AT+CWMODE_DEF=1"); // 1: station(client) mode, 2: softAP(server) mode, 3: 1&2
     if(!(checkATResponse() && restart())) return false; // change "DEF"ault cwMode and restart
@@ -78,24 +78,24 @@ bool ESP8266_AT::connectAP(String ssid, String password) {
     while(retry--) {
         // Connect to an AP
         rxClear();
+        delay(500);
         m_serial->print("AT+CWJAP_DEF=\"");
         m_serial->print(ssid);
         m_serial->print("\",\"");
         m_serial->print(password);
         m_serial->println("\"");
         if(checkATResponse("OK", 10000)) return true;
-        delay(100);
     }
     return false;
 }
 
-bool ESP8266_AT::disconnectAP() {
+bool HttpClient_ESP8266_AT::disconnectAP() {
     rxClear();
     m_serial->println("AT+CWQAP");
     return checkATResponse();
 }
 
-uint8_t ESP8266_AT::ipStatus() {
+uint8_t HttpClient_ESP8266_AT::ipStatus() {
     String buf;
     rxClear();
     m_serial->println("AT+CIPSTATUS");
@@ -104,7 +104,7 @@ uint8_t ESP8266_AT::ipStatus() {
     return buf.substring(index + 1, index + 2).toInt();
 }
 
-bool ESP8266_AT::statusWiFi() {
+bool HttpClient_ESP8266_AT::statusWiFi() {
     uint8_t checkCnt = 5;
     while(checkCnt--) {
         if(ipStatus() == 5) return false;
@@ -113,8 +113,23 @@ bool ESP8266_AT::statusWiFi() {
     return true;
 }
 
-int ESP8266_AT::connect(const char *host, uint16_t port) {
-    if(connected()) stop();
+bool HttpClient_ESP8266_AT::connectedTcp() {
+    uint8_t retry = 5;
+    while(retry--) {
+        if(ipStatus() == 3) return true;
+        delay(100);
+    }
+    return false;
+}
+
+bool HttpClient_ESP8266_AT::disconnectTcp() {
+    rxClear();
+    m_serial->println("AT+CIPCLOSE");
+    return checkATResponse();
+}
+
+bool HttpClient_ESP8266_AT::connectTcp(String host, uint32_t port) {
+    if(connectedTcp()) disconnectTcp();
     String buf;
     uint8_t retry = 10;
     while(retry--) {
@@ -125,65 +140,9 @@ int ESP8266_AT::connect(const char *host, uint16_t port) {
         m_serial->println(port);
         checkATResponse(&buf);
         if(buf.indexOf("OK") != -1 || buf.indexOf("ALREADY") != -1) {
-            return 1; // SUCCESS
+            return true;
         }
         delay(100);
     }
-    return -1; // TIMED_OUT
-}
-
-int ESP8266_AT::connect(IPAddress ip, uint16_t port) {
-    String host = "";
-    for(uint8_t i = 0; i < 4;) {
-        host += String(ip[i]);
-        if(++i < 4) host += ".";
-    }
-    return connect(host.c_str(), port);
-}
-
-void ESP8266_AT::stop() {
-    rxClear();
-    m_serial->println("AT+CIPCLOSE");
-    checkATResponse();
-}
-
-uint8_t ESP8266_AT::connected() {
-    uint8_t retry = 5;
-    while(retry--) {
-        if(ipStatus() == 3) return 1;
-        delay(100);
-    }
-    return 0;
-}
-
-size_t ESP8266_AT::write(const uint8_t *buf, size_t size) {
-    return 0; // TODO
-}
-
-size_t ESP8266_AT::write(uint8_t) {
-    return 0; // TODO
-}
-
-int ESP8266_AT::available() {
-    return 0; // TODO
-}
-
-int ESP8266_AT::read() {
-    return 0; // TODO
-}
-
-int ESP8266_AT::read(uint8_t *buf, size_t size) {
-    return 0; // TODO
-}
-
-int ESP8266_AT::peek() {
-    return 0; // TODO
-}
-
-void ESP8266_AT::flush() {
-    // TODO
-}
-
-ESP8266_AT::operator bool() {
-    // TODO
+    return false;
 }

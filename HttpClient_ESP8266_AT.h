@@ -1,12 +1,10 @@
-#ifndef ESP8266_AT_H_
-#define ESP8266_AT_H_
+#ifndef HTTPCLIENT_ESP8266_AT_H_
+#define HTTPCLIENT_ESP8266_AT_H_
 
 #include <Arduino.h>
 #include <SoftwareSerial.h>
-#include <Client.h>
 
-class ESP8266_AT :
-    public Client
+class HttpClient_ESP8266_AT
 {
  private:
     // SoftwareSerial rx and tx pins
@@ -21,13 +19,13 @@ class ESP8266_AT :
     // - Create SoftwareSerial inside the constructor
     //   rxPin: Wire this to Tx Pin of ESP8266
     //   txPin: Wire this to Rx Pin of ESP8266
-    ESP8266_AT(uint32_t rxPin, uint32_t txPin, uint32_t baud = 115200);
+    HttpClient_ESP8266_AT(uint32_t rxPin, uint32_t txPin, uint32_t baud = 115200);
     // - Construct from SoftwareSerial or HardwareSerial
-    ESP8266_AT(SoftwareSerial &serial);
-    ESP8266_AT(HardwareSerial &serial);
+    HttpClient_ESP8266_AT(SoftwareSerial &serial);
+    HttpClient_ESP8266_AT(HardwareSerial &serial);
 
     // Destructor
-    ~ESP8266_AT();
+    ~HttpClient_ESP8266_AT();
 
  public:
     // Health check of the serial interface
@@ -58,22 +56,11 @@ class ESP8266_AT :
     //   5: ESP8266 station did NOT connect to an AP
     uint8_t ipStatus();
 
- public:
-    // As a sub class of `Client`, these methods need to be implemented.
-    // see. https://www.arduino.cc/en/Reference/ClientConstructor
-    //      https://github.com/arduino/Arduino/blob/master/hardware/arduino/avr/cores/arduino/Client.h
-    virtual int connect(IPAddress ip, uint16_t port);
-    virtual int connect(const char *host, uint16_t port);
-    virtual size_t write(uint8_t);
-    virtual size_t write(const uint8_t *buf, size_t size);
-    virtual int available();
-    virtual int read();
-    virtual int read(uint8_t *buf, size_t size);
-    virtual int peek();
-    virtual void flush();
-    virtual void stop();
-    virtual uint8_t connected();
-    virtual operator bool();
+ private:
+    // Create or Destroy TCP connection
+    bool connectTcp(String host, uint32_t port);
+    bool disconnectTcp();
+    bool connectedTcp(); // true if TCP connection exists
 };
 
-#endif // #ifndef ESP8266_AT_H_
+#endif // #ifndef HTTPCLIENT_ESP8266_AT_H_
