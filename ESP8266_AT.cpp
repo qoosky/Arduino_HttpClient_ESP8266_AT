@@ -74,14 +74,19 @@ bool ESP8266_AT::connectAP(String ssid, String password) {
     m_serial->println("AT+CWMODE_DEF=1"); // 1: station(client) mode, 2: softAP(server) mode, 3: 1&2
     if(!(checkATResponse() && restart())) return false; // change "DEF"ault cwMode and restart
 
-    // Connect to an AP
-    rxClear();
-    m_serial->print("AT+CWJAP_DEF=\"");
-    m_serial->print(ssid);
-    m_serial->print("\",\"");
-    m_serial->print(password);
-    m_serial->println("\"");
-    return checkATResponse("OK", 10000);
+    uint8_t retry = 5;
+    while(retry--) {
+        // Connect to an AP
+        rxClear();
+        m_serial->print("AT+CWJAP_DEF=\"");
+        m_serial->print(ssid);
+        m_serial->print("\",\"");
+        m_serial->print(password);
+        m_serial->println("\"");
+        if(checkATResponse("OK", 10000)) return true;
+        delay(100);
+    }
+    return false;
 }
 
 bool ESP8266_AT::disconnectAP() {
@@ -100,7 +105,12 @@ uint8_t ESP8266_AT::ipStatus() {
 }
 
 bool ESP8266_AT::statusWiFi() {
-    return (ipStatus() != 5);
+    uint8_t checkCnt = 5;
+    while(checkCnt--) {
+        if(ipStatus() == 5) return false;
+        delay(100);
+    }
+    return true;
 }
 
 int ESP8266_AT::connect(const char *host, uint16_t port) {
