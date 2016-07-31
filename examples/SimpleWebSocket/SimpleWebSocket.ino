@@ -1,80 +1,33 @@
-/*
-  Simple WebSocket client for ArduinoHttpClient library
-  Connects to the WebSocket server, and sends a hello
-  message every 5 seconds
-
-  note: WiFi SSID and password are stored in config.h file.
-  If it is not present, add a new tab, call it "config.h"
-  and add the following variables:
-  char ssid[] = "ssid";     //  your network SSID (name)
-  char pass[] = "password"; // your network password
-
-  created 28 Jun 2016
-  by Sandeep Mistry
-
-  this example is in the public domain
-*/
 #include <ArduinoHttpClient.h>
-#include <WiFi101.h>
+#include <ESP8266_AT.h>
 #include "config.h"
 
-char serverAddress[] = "echo.websocket.org";  // server address
-int port = 80;
-
-WiFiClient wifi;
-WebSocketClient client = WebSocketClient(wifi, serverAddress, port);
-int status = WL_IDLE_STATUS;
-int count = 0;
+const byte rxPin = 2; // Wire this to Tx Pin of ESP8266
+const byte txPin = 3; // Wire this to Rx Pin of ESP8266
+ESP8266_AT wifi(rxPin, txPin);
 
 void setup() {
-  Serial.begin(9600);
-  while ( status != WL_CONNECTED) {
-    Serial.print("Attempting to connect to Network named: ");
-    Serial.println(ssid);                   // print the network name (SSID);
+    Serial.begin(9600);
 
-    // Connect to WPA/WPA2 network:
-    status = WiFi.begin(ssid, pass);
-  }
+    while(true) {
+        if(wifi.statusAT()) { Serial.println("AT status OK"); break; }
+        else Serial.println("AT status NOT OK");
+        delay(1000);
+    }
 
-  // print the SSID of the network you're attached to:
-  Serial.print("SSID: ");
-  Serial.println(WiFi.SSID());
+    while(true) {
+        if(wifi.connect(ssid, pass)) { Serial.println("Successfully connected to an AP"); break; }
+        else Serial.println("Failed to connected to an AP. retrying...");
+        delay(1000);
+    }
 
-  // print your WiFi shield's IP address:
-  IPAddress ip = WiFi.localIP();
-  Serial.print("IP Address: ");
-  Serial.println(ip);
+    while(true) {
+        if(wifi.statusWiFi()) { Serial.println("WiFi status OK"); break; }
+        else Serial.println("WiFi status NOT OK");
+        delay(1000);
+    }
 }
 
 void loop() {
-  Serial.println("starting WebSocket client");
-  client.begin();
-
-  while (client.connected()) {
-    Serial.print("Sending hello ");
-    Serial.println(count);
-
-    // send a hello #
-    client.beginMessage(TYPE_TEXT);
-    client.print("hello ");
-    client.print(count);
-    client.endMessage();
-
-    // increment count for next message
-    count++;
-
-    // check if a message is available to be received
-    int messageSize = client.parseMessage();
-
-    if (messageSize > 0) {
-      Serial.println("Received a message:");
-      Serial.println(client.readString());
-    }
-
-    // wait 5 seconds
-    delay(5000);
-  }
-
-  Serial.println("disconnected");
+    // TODO
 }
-
