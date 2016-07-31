@@ -129,7 +129,9 @@ int ESP8266_AT::connect(IPAddress ip, uint16_t port) {
 }
 
 void ESP8266_AT::stop() {
-    // TODO
+    rxClear();
+    m_serial->println("AT+CIPCLOSE");
+    checkATResponse("OK", 5000);
 }
 
 uint8_t ESP8266_AT::connected() {
