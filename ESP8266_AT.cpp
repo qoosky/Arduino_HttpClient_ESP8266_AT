@@ -100,19 +100,47 @@ bool ESP8266_AT::statusWiFi() {
     return (stat != 5); // 5: ESP8266 station is NOT connected to an AP
 }
 
-int ESP8266_AT::connect(IPAddress ip, uint16_t port) {
-    return 0; // TODO
+int ESP8266_AT::connect(const char *host, uint16_t port) {
+    if(connected()) stop();
+    String buf;
+    uint8_t retry = 10;
+    while(retry--) {
+        rxClear();
+        m_serial->print("AT+CIPSTART=\"TCP\",\"");
+        m_serial->print(host);
+        m_serial->print("\",");
+        m_serial->println(port);
+        checkATResponse(&buf, "OK", 2000);
+        if(buf.indexOf("OK") != -1 || buf.indexOf("ALREADY") != -1) {
+            return 1; // SUCCESS
+        }
+        delay(500);
+    }
+    return -1; // TIMED_OUT
 }
 
-int ESP8266_AT::connect(const char *host, uint16_t port) {
+int ESP8266_AT::connect(IPAddress ip, uint16_t port) {
+    String host = "";
+    for(uint8_t i = 0; i < 4;) {
+        host += String(ip[i]);
+        if(++i < 4) host += ".";
+    }
+    return connect(host.c_str(), port);
+}
+
+void ESP8266_AT::stop() {
+    // TODO
+}
+
+uint8_t ESP8266_AT::connected() {
+    return 1; // TODO
+}
+
+size_t ESP8266_AT::write(const uint8_t *buf, size_t size) {
     return 0; // TODO
 }
 
 size_t ESP8266_AT::write(uint8_t) {
-    return 0; // TODO
-}
-
-size_t ESP8266_AT::write(const uint8_t *buf, size_t size) {
     return 0; // TODO
 }
 
@@ -134,14 +162,6 @@ int ESP8266_AT::peek() {
 
 void ESP8266_AT::flush() {
     // TODO
-}
-
-void ESP8266_AT::stop() {
-    // TODO
-}
-
-uint8_t ESP8266_AT::connected() {
-    return 0; // TODO
 }
 
 ESP8266_AT::operator bool() {
