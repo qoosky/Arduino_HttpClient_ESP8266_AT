@@ -56,6 +56,18 @@ class HttpClient_ESP8266_AT
     //   5: ESP8266 station did NOT connect to an AP
     uint8_t ipStatus();
 
+ public:
+    // HTTP GET and POST
+    // - return true if successful, else error
+    // - SSL/TLS is not supported
+    bool get(const String& host, const String& path, uint32_t port = 80);
+    bool post(const String& host, const String& path, const String& body,
+              const String& contentType = "application/x-www-form-urlencoded", uint32_t port = 80);
+
+    // HTTP response of the last request
+    int responseStatusCode(); // MUST be called before responseBody()
+    String responseBody(); // MUST be called after responseStatusCode()
+
  private:
     // Create or Destroy TCP connection
     bool connectTcp(String host, uint32_t port);

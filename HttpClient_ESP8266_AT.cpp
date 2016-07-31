@@ -146,3 +146,20 @@ bool HttpClient_ESP8266_AT::connectTcp(String host, uint32_t port) {
     }
     return false;
 }
+
+bool HttpClient_ESP8266_AT::get(const String& host, const String& path, uint32_t port) {
+    return true; // TODO
+}
+
+bool HttpClient_ESP8266_AT::post(const String& host, const String& path, const String& body,
+                                 const String& contentType, uint32_t port) {
+    return true; // TODO
+}
+
+int HttpClient_ESP8266_AT::responseStatusCode() {
+    return 200; // TODO
+}
+
+String HttpClient_ESP8266_AT::responseBody() {
+    return "BODY"; // TODO
+}
