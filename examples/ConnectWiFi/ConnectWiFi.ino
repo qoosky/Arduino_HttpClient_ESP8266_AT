@@ -3,26 +3,26 @@
 
 // Three types of the constructors:
 
-// 1. Create SoftwareSerial inside ESP8266_AT class <*1>
+// 1. Create SoftwareSerial inside ESP8266_AT class
 const byte rxPin = 2; // Wire this to Tx Pin of ESP8266
 const byte txPin = 3; // Wire this to Rx Pin of ESP8266
 ESP8266_AT wifi(rxPin, txPin);
 
-// 2. Provide SoftwareSerial <*2>
+// 2. Provide SoftwareSerial
 //SoftwareSerial softwareSerial(rxPin, txPin);
 //ESP8266_AT wifi(softwareSerial);
 
-// 3. Provide HardwareSerial <*3>
+// 3. Provide HardwareSerial
 //ESP8266_AT wifi(Serial);
 
 
 void setup() {
     // Set baud rate of the serial interfaces
-     Serial.begin(9600); // in case *1
-    //softwareSerial.begin(115200); // in case *2
-    //Serial.begin(115200); // in case *3
+     Serial.begin(9600); // in case of '1'
+    //softwareSerial.begin(115200); // in case of '2'
+    //Serial.begin(115200); // in case of '3'
 
-    // Check the status of ESP8266 AT command interface
+    // Check the status of the ESP8266 AT command interface.
     while(true) {
         if(wifi.statusAT()) {
             Serial.println("AT status OK");
@@ -48,7 +48,7 @@ void setup() {
 }
 
 void loop() {
-    // Continue to check the status of WiFi connectivity
+    // Continue to check the status of the WiFi connectivity
     if(wifi.statusWiFi()) {
         Serial.println("WiFi status OK");
     }
