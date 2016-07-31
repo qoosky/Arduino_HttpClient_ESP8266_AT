@@ -19,7 +19,7 @@ ESP8266_AT::ESP8266_AT(HardwareSerial &serial) :
 }
 
 ESP8266_AT::~ESP8266_AT() {
-    disconnect();
+    disconnectAP();
     if(m_rxPin != 0 && m_txPin !=0) delete m_serial;
 }
 
@@ -69,7 +69,7 @@ bool ESP8266_AT::restart() {
     return false;
 }
 
-bool ESP8266_AT::connect(String ssid, String password) {
+bool ESP8266_AT::connectAP(String ssid, String password) {
     rxClear();
     m_serial->println("AT+CWMODE_DEF=1"); // 1: station(client) mode, 2: softAP(server) mode, 3: 1&2
     if(!(checkATResponse() && restart())) return false; // change "DEF"ault cwMode and restart
@@ -84,20 +84,23 @@ bool ESP8266_AT::connect(String ssid, String password) {
     return checkATResponse("OK", 10000);
 }
 
-bool ESP8266_AT::disconnect() {
+bool ESP8266_AT::disconnectAP() {
     rxClear();
     m_serial->println("AT+CWQAP");
     return checkATResponse();
 }
 
-bool ESP8266_AT::statusWiFi() {
+uint8_t ESP8266_AT::ipStatus() {
     String buf;
     rxClear();
     m_serial->println("AT+CIPSTATUS");
-    checkATResponse(&buf, "S:", 10000);
+    checkATResponse(&buf, "S:");
     uint32_t index = buf.indexOf(":");
-    uint8_t stat = buf.substring(index + 1, index + 2).toInt();
-    return (stat != 5); // 5: ESP8266 station is NOT connected to an AP
+    return buf.substring(index + 1, index + 2).toInt();
+}
+
+bool ESP8266_AT::statusWiFi() {
+    return (ipStatus() != 5);
 }
 
 int ESP8266_AT::connect(const char *host, uint16_t port) {
@@ -110,11 +113,11 @@ int ESP8266_AT::connect(const char *host, uint16_t port) {
         m_serial->print(host);
         m_serial->print("\",");
         m_serial->println(port);
-        checkATResponse(&buf, "OK", 2000);
+        checkATResponse(&buf);
         if(buf.indexOf("OK") != -1 || buf.indexOf("ALREADY") != -1) {
             return 1; // SUCCESS
         }
-        delay(500);
+        delay(100);
     }
     return -1; // TIMED_OUT
 }
@@ -131,11 +134,16 @@ int ESP8266_AT::connect(IPAddress ip, uint16_t port) {
 void ESP8266_AT::stop() {
     rxClear();
     m_serial->println("AT+CIPCLOSE");
-    checkATResponse("OK", 5000);
+    checkATResponse();
 }
 
 uint8_t ESP8266_AT::connected() {
-    return 1; // TODO
+    uint8_t retry = 5;
+    while(retry--) {
+        if(ipStatus() == 3) return 1;
+        delay(100);
+    }
+    return 0;
 }
 
 size_t ESP8266_AT::write(const uint8_t *buf, size_t size) {

@@ -36,7 +36,7 @@ void setup() {
 
     // Connect to an AP
     while(true) {
-        if(wifi.connect(ssid, pass)) {
+        if(wifi.connectAP(ssid, pass)) {
             Serial.println("Successfully connected to an AP");
             break;
         }

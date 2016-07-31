@@ -17,7 +17,7 @@ void setup() {
         delay(1000);
     }
     while(true) {
-        if(wifi.connect(ssid, pass)) { Serial.println("Successfully connected to an AP"); break; }
+        if(wifi.connectAP(ssid, pass)) { Serial.println("Successfully connected to an AP"); break; }
         else Serial.println("Failed to connected to an AP. retrying...");
         delay(1000);
     }

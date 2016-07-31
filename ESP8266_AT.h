@@ -37,8 +37,8 @@ class ESP8266_AT :
     bool statusWiFi();
 
     // Connect/Disconnect ESP8266 to/from WiFi network
-    bool connect(String ssid, String password);
-    bool disconnect();
+    bool connectAP(String ssid, String password);
+    bool disconnectAP();
 
  private:
     // Clear rx buffer
@@ -51,7 +51,14 @@ class ESP8266_AT :
     bool checkATResponse(String target = "OK", uint32_t timeout = 1000);
     bool checkATResponse(String *buf, String target = "OK", uint32_t timeout = 1000); // store the data into buffer
 
- private:
+    // Get IPSTATUS of ESP8266
+    //   2: ESP8266 station connected to an AP and has obtained IP
+    //   3: ESP8266 station created a TCP or UDP transmission
+    //   4: the TCP or UDP transmission of ESP8266 station disconnected
+    //   5: ESP8266 station did NOT connect to an AP
+    uint8_t ipStatus();
+
+ public:
     // As a sub class of `Client`, these methods need to be implemented.
     // see. https://www.arduino.cc/en/Reference/ClientConstructor
     //      https://github.com/arduino/Arduino/blob/master/hardware/arduino/avr/cores/arduino/Client.h
