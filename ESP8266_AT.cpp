@@ -94,10 +94,10 @@ bool ESP8266_AT::statusWiFi() {
     String buf;
     rxClear();
     m_serial->println("AT+CIPSTATUS");
-    checkATResponse(&buf, "OK", 10000);
+    checkATResponse(&buf, "S:", 10000);
     uint32_t index = buf.indexOf(":");
     uint8_t stat = buf.substring(index + 1, index + 2).toInt();
-    return (stat != 5);
+    return (stat != 5); // 5: ESP8266 station is NOT connected to an AP
 }
 
 int ESP8266_AT::connect(IPAddress ip, uint16_t port) {
