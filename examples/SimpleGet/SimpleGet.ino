@@ -29,5 +29,23 @@ void setup() {
 }
 
 void loop() {
-    // TODO
+    // HTTP GET request
+    HttpClient httpClient = HttpClient(wifi, "www.example.com", 80);
+    httpClient.get("/");
+
+    // Check response status code
+    int status = httpClient.responseStatusCode();
+    if(status != 200) {
+        Serial.print("HTTP status code: ");
+        Serial.println(status);
+        delay(1000);
+        return;
+    }
+
+    // Print response body
+    String body = httpClient.responseBody();
+    Serial.println(body);
+
+    Serial.println("----------");
+    delay(5000);
 }
