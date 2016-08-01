@@ -75,7 +75,7 @@ bool HttpClient_ESP8266_AT::connectAP(String ssid, String password) {
     if(!(checkATResponse() && restart())) return false; // change "DEF"ault cwMode and restart
 
     uint8_t retry = 5;
-    while(retry--) {
+    do {
         // Connect to an AP
         rxClear();
         delay(500);
@@ -85,7 +85,7 @@ bool HttpClient_ESP8266_AT::connectAP(String ssid, String password) {
         m_serial->print(password);
         m_serial->println("\"");
         if(checkATResponse("OK", 10000)) return true;
-    }
+    } while(--retry);
     return false;
 }
 
@@ -106,19 +106,19 @@ uint8_t HttpClient_ESP8266_AT::ipStatus() {
 
 bool HttpClient_ESP8266_AT::statusWiFi() {
     uint8_t checkCnt = 5;
-    while(checkCnt--) {
+    do {
         if(ipStatus() == 5) return false;
         delay(100);
-    }
+    } while(--checkCnt);
     return true;
 }
 
 bool HttpClient_ESP8266_AT::connectedTcp() {
     uint8_t retry = 5;
-    while(retry--) {
+    do {
         if(ipStatus() == 3) return true;
         delay(100);
-    }
+    } while(--retry);
     return false;
 }
 
@@ -132,7 +132,7 @@ bool HttpClient_ESP8266_AT::connectTcp(String host, uint32_t port) {
     if(connectedTcp()) disconnectTcp();
     String buf;
     uint8_t retry = 10;
-    while(retry--) {
+    do {
         rxClear();
         m_serial->print("AT+CIPSTART=\"TCP\",\"");
         m_serial->print(host);
@@ -143,7 +143,7 @@ bool HttpClient_ESP8266_AT::connectTcp(String host, uint32_t port) {
             return true;
         }
         delay(100);
-    }
+    } while(retry--);
     return false;
 }
 
