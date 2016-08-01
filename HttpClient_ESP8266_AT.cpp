@@ -159,7 +159,3 @@ bool HttpClient_ESP8266_AT::post(const String& host, const String& path, const S
 int HttpClient_ESP8266_AT::responseStatusCode() {
     return 200; // TODO
 }
-
-String HttpClient_ESP8266_AT::responseBody() {
-    return "BODY"; // TODO
-}

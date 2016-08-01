@@ -64,9 +64,8 @@ class HttpClient_ESP8266_AT
     bool post(const String& host, const String& path, const String& body,
               const String& contentType = "application/x-www-form-urlencoded", uint32_t port = 80);
 
-    // HTTP response of the last request
-    int responseStatusCode(); // MUST be called before responseBody()
-    String responseBody(); // MUST be called after responseStatusCode()
+    // HTTP response status code of the last request
+    int responseStatusCode();
 
  private:
     // Create or Destroy TCP connection
