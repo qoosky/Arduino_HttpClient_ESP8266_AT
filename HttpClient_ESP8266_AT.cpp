@@ -152,18 +152,39 @@ int HttpClient_ESP8266_AT::responseStatusCode() {
 }
 
 bool HttpClient_ESP8266_AT::get(const String& host, const String& path, uint32_t port) {
+    return sendRequest("GET", host, port, path);
+}
+
+bool HttpClient_ESP8266_AT::post(const String& host, const String& path, const String& body,
+                                 const String& contentType, uint32_t port) {
+    return sendRequest("POST", host, port, path, contentType, body);
+}
+
+bool HttpClient_ESP8266_AT::sendRequest(const String& method,
+                                        const String& host, uint32_t port, const String& path,
+                                        const String& contentType, const String& body) {
     // Create TCP connection
     connectTcp(host, port);
 
-    // HTTP GET Request parts
+    // HTTP Request parts
     uint8_t nGetRequest = 3;
     String getRequest[] = {
         "GET ",
         " HTTP/1.1\r\nHost: ",
         "\r\nUser-Agent: Arduino ESP8266\r\nConnection: close\r\n\r\n",
     };
-    uint32_t len = host.length() + path.length();
-    for(uint8_t i = 0; i < nGetRequest; ++i) len += getRequest[i].length();
+    uint8_t nPostRequest = 6;
+    String postRequest[] = {
+        "POST ",
+        " HTTP/1.1\r\nHost: ",
+        "\r\nContent-Type: ",
+        "\r\nContent-Length: " + String(body.length()),
+        "\r\nUser-Agent: Arduino ESP8266\r\nConnection: close\r\n\r\n",
+        "\r\n",
+    };
+    uint32_t len = path.length() + host.length() + contentType.length() + body.length();
+    if(method == "GET") for(uint8_t i = 0; i < nGetRequest; ++i) len += getRequest[i].length();
+    else for(uint8_t i = 0; i < nPostRequest; ++i) len += postRequest[i].length();
 
     // prepare to send the request data
     uint8_t retry = 15;
@@ -181,10 +202,10 @@ bool HttpClient_ESP8266_AT::get(const String& host, const String& path, uint32_t
 
     // send data
     uint32_t sentLen = 0;
-    for(uint8_t i = 0; i < nGetRequest; ++i) {
-        for(uint32_t j = 0; j < getRequest[i].length(); ++j) {
+    for(uint8_t i = 0; (method == "GET" && i < nGetRequest) || (method == "POST" && i < nPostRequest); ++i) {
+        for(uint32_t j = 0; (method == "GET" && j < getRequest[i].length()) || (method == "POST" && j < postRequest[i].length()); ++j) {
             if(++sentLen % 64 == 0) delay(20); // Some Arduino's default serial buffer size is 64 bytes (Wait for it to be empty again.)
-            m_serial->write(getRequest[i][j]);
+            m_serial->write(method == "GET" ? getRequest[i][j] : postRequest[i][j]);
         }
         for(uint32_t j = 0; i == 0 && j < path.length(); ++j) {
             if(++sentLen % 64 == 0) delay(20);
@@ -193,6 +214,14 @@ bool HttpClient_ESP8266_AT::get(const String& host, const String& path, uint32_t
         for(uint32_t j = 0; i == 1 && j < host.length(); ++j) {
             if(++sentLen % 64 == 0) delay(20);
             m_serial->write(host[j]);
+        }
+        for(uint32_t j = 0; method == "POST" && i == 2 && j < contentType.length(); ++j) {
+            if(++sentLen % 64 == 0) delay(20);
+            m_serial->write(contentType[j]);
+        }
+        for(uint32_t j = 0; method == "POST" && i == 4 && j < body.length(); ++j) {
+            if(++sentLen % 64 == 0) delay(20);
+            m_serial->write(body[j]);
         }
     }
 
@@ -208,9 +237,4 @@ bool HttpClient_ESP8266_AT::get(const String& host, const String& path, uint32_t
     if(index == -1) m_responseStatusCode = 0; // response parse error (request data sent SUCCESSFULLY, but response data was corrupted)
     else m_responseStatusCode = response.substring(index + 3, index + 6).toInt();
     return true;
-}
-
-bool HttpClient_ESP8266_AT::post(const String& host, const String& path, const String& body,
-                                 const String& contentType, uint32_t port) {
-    return true; // TODO
 }

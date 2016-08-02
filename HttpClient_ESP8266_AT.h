@@ -75,6 +75,12 @@ class HttpClient_ESP8266_AT
     bool connectTcp(String host, uint32_t port);
     bool disconnectTcp();
     bool connectedTcp(); // true if TCP connection exists
+
+ private:
+    // Common HTTP request interface for GET and POST
+    bool sendRequest(const String& method,
+                     const String& host, uint32_t port, const String& path,
+                     const String& contentType = "", const String& body = "");
     int m_responseStatusCode;
 };
 
