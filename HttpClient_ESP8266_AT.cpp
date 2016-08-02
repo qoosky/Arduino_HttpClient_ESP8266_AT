@@ -1,7 +1,7 @@
 #include "HttpClient_ESP8266_AT.h"
 
 HttpClient_ESP8266_AT::HttpClient_ESP8266_AT(uint32_t rxPin, uint32_t txPin, uint32_t baud) :
-    m_rxPin(rxPin), m_txPin(txPin)
+    m_rxPin(rxPin), m_txPin(txPin), m_responseStatusCode(0)
 {
     SoftwareSerial *serial = new SoftwareSerial(rxPin, txPin);
     serial->begin(baud);
@@ -9,12 +9,12 @@ HttpClient_ESP8266_AT::HttpClient_ESP8266_AT(uint32_t rxPin, uint32_t txPin, uin
 }
 
 HttpClient_ESP8266_AT::HttpClient_ESP8266_AT(SoftwareSerial &serial) :
-    m_rxPin(0), m_txPin(0), m_serial(&serial)
+    m_rxPin(0), m_txPin(0), m_serial(&serial), m_responseStatusCode(0)
 {
 }
 
 HttpClient_ESP8266_AT::HttpClient_ESP8266_AT(HardwareSerial &serial) :
-    m_rxPin(0), m_txPin(0), m_serial(&serial)
+    m_rxPin(0), m_txPin(0), m_serial(&serial), m_responseStatusCode(0)
 {
 }
 
@@ -147,15 +147,70 @@ bool HttpClient_ESP8266_AT::connectTcp(String host, uint32_t port) {
     return false;
 }
 
+int HttpClient_ESP8266_AT::responseStatusCode() {
+    return m_responseStatusCode;
+}
+
 bool HttpClient_ESP8266_AT::get(const String& host, const String& path, uint32_t port) {
-    return true; // TODO
+    // Create TCP connection
+    connectTcp(host, port);
+
+    // HTTP GET Request parts
+    uint8_t nGetRequest = 3;
+    String getRequest[] = {
+        "GET ",
+        " HTTP/1.1\r\nHost: ",
+        "\r\nUser-Agent: Arduino ESP8266\r\nConnection: close\r\n\r\n",
+    };
+    uint32_t len = host.length() + path.length();
+    for(uint8_t i = 0; i < nGetRequest; ++i) len += getRequest[i].length();
+
+    // prepare to send the request data
+    uint8_t retry = 15;
+    do {
+        String buf;
+        rxClear();
+        m_serial->print("AT+CIPSEND=");
+        m_serial->println(len);
+        if(checkATResponse(&buf, "> ")) break;
+        if(!(--retry)) {
+            m_responseStatusCode = -1; // timeout error (request data was NOT sent)
+            return false;
+        }
+    } while(true);
+
+    // send data
+    uint32_t sentLen = 0;
+    for(uint8_t i = 0; i < nGetRequest; ++i) {
+        for(uint32_t j = 0; j < getRequest[i].length(); ++j) {
+            if(++sentLen % 64 == 0) delay(20); // Some Arduino's default serial buffer size is 64 bytes (Wait for it to be empty again.)
+            m_serial->write(getRequest[i][j]);
+        }
+        for(uint32_t j = 0; i == 0 && j < path.length(); ++j) {
+            if(++sentLen % 64 == 0) delay(20);
+            m_serial->write(path[j]);
+        }
+        for(uint32_t j = 0; i == 1 && j < host.length(); ++j) {
+            if(++sentLen % 64 == 0) delay(20);
+            m_serial->write(host[j]);
+        }
+    }
+
+    // Start to buffer serial data fast!! to avoid serial buffer overflow.
+    unsigned long start = millis();
+    String response = "";
+    while (millis() - start < 1000) {
+        if(m_serial->available() > 0) response += (char)m_serial->read();
+    }
+
+    // Parse response status code
+    uint32_t index = response.indexOf(".1");
+    if(index == -1) m_responseStatusCode = 0; // response parse error (request data sent SUCCESSFULLY, but response data was corrupted)
+    else m_responseStatusCode = response.substring(index + 3, index + 6).toInt();
+    return true;
 }
 
 bool HttpClient_ESP8266_AT::post(const String& host, const String& path, const String& body,
                                  const String& contentType, uint32_t port) {
     return true; // TODO
-}
-
-int HttpClient_ESP8266_AT::responseStatusCode() {
-    return 200; // TODO
 }

@@ -27,5 +27,25 @@ void setup() {
 }
 
 void loop() {
-    // TODO
+    while(true) {
+        // Let's start HTTP GET request
+        httpClient.get("www.example.com", "/");
+
+        // Check the request data was sent successfully without timeout.
+        //   -1: timeout error (request data was NOT sent)
+        //    0: response parse error (request data sent SUCCESSFULLY, but response data was corrupted)
+        //   else (>0): HTTP status code (200, 404, 500, 302,.. etc.)
+
+        if(httpClient.responseStatusCode() >= 0) {
+            // Serial data without parity check may be corrupted.
+            // So, in this example, we do not care the actual value of it.
+            // (The fact that request data was sent is important.)
+            Serial.println("SUCCESS");
+            break;
+        }
+        else {
+            Serial.println("FAILURE, retrying...");
+        }
+    }
+    delay(1000);
 }

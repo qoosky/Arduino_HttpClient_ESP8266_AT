@@ -65,6 +65,9 @@ class HttpClient_ESP8266_AT
               const String& contentType = "application/x-www-form-urlencoded", uint32_t port = 80);
 
     // HTTP response status code of the last request
+    //   -1: timeout error (request data was NOT sent)
+    //    0: response parse error (request data sent SUCCESSFULLY, but response data was corrupted)
+    //   else (>0): HTTP status code (200, 404, 500, 302,.. etc.)
     int responseStatusCode();
 
  private:
@@ -72,6 +75,7 @@ class HttpClient_ESP8266_AT
     bool connectTcp(String host, uint32_t port);
     bool disconnectTcp();
     bool connectedTcp(); // true if TCP connection exists
+    int m_responseStatusCode;
 };
 
 #endif // #ifndef HTTPCLIENT_ESP8266_AT_H_
