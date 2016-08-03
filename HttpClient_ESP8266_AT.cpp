@@ -30,7 +30,7 @@ void HttpClient_ESP8266_AT::rxClear() {
 bool HttpClient_ESP8266_AT::checkATResponse(String *buf, String target, uint32_t timeout) {
     *buf = "";
     char c;
-    unsigned long start = millis();
+    const unsigned long start = millis();
     while (millis() - start < timeout) {
         while(m_serial->available() > 0) {
             c = m_serial->read(); // 1 byte
@@ -58,7 +58,7 @@ bool HttpClient_ESP8266_AT::restart() {
     m_serial->println("AT+RST");
     if(!checkATResponse()) return false;
     delay(2000);
-    unsigned long start = millis();
+    const unsigned long start = millis();
     while(millis() - start < 3000) {
         if(statusAT()) {
             delay(1500);
@@ -167,13 +167,13 @@ bool HttpClient_ESP8266_AT::sendRequest(const String& method,
     connectTcp(host, port);
 
     // HTTP Request parts
-    uint8_t nGetRequest = 3;
+    const uint8_t nGetRequest = 3;
     String getRequest[] = {
         "GET ",
         " HTTP/1.1\r\nHost: ",
         "\r\nUser-Agent: Arduino ESP8266\r\nConnection: close\r\n\r\n",
     };
-    uint8_t nPostRequest = 6;
+    const uint8_t nPostRequest = 6;
     String postRequest[] = {
         "POST ",
         " HTTP/1.1\r\nHost: ",
@@ -226,10 +226,14 @@ bool HttpClient_ESP8266_AT::sendRequest(const String& method,
     }
 
     // Start to buffer serial data fast!! to avoid serial buffer overflow.
-    unsigned long start = millis();
+    const unsigned long start = millis();
     String response = "";
+    uint32_t lenLimit = 64;
     while (millis() - start < 1000) {
-        if(m_serial->available() > 0) response += (char)m_serial->read();
+        if(m_serial->available() > 0) {
+            response += (char)m_serial->read();
+            if(--lenLimit == 0) break;
+        }
     }
 
     // Parse response status code
