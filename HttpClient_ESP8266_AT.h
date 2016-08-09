@@ -35,7 +35,7 @@ class HttpClient_ESP8266_AT
     bool statusWiFi();
 
     // Connect/Disconnect ESP8266 to/from WiFi network
-    bool connectAP(String ssid, String password);
+    bool connectAP(const String& ssid, const String& password);
     bool disconnectAP();
 
  private:
@@ -72,7 +72,7 @@ class HttpClient_ESP8266_AT
 
  private:
     // Create or Destroy TCP connection
-    bool connectTcp(String host, uint32_t port);
+    bool connectTcp(const String& host, uint32_t port);
     bool disconnectTcp();
     bool connectedTcp(); // true if TCP connection exists
 
