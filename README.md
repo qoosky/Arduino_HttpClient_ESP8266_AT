@@ -14,6 +14,6 @@ To be usable for Arduino UNO without serial communication's parity check, we aba
 
 Please see the following simple and yet sufficient examples.
 
-- [ConnectWiFi.ino](https://github.com/qoosky/Arduino_HttpClient_ESP8266_AT/blob/master/examples/ConnectWiFi.ino)
-- [HTTPGET.ino](https://github.com/qoosky/Arduino_HttpClient_ESP8266_AT/blob/master/examples/HTTPGET.ino)
-- [HTTPPOST.ino](https://github.com/qoosky/Arduino_HttpClient_ESP8266_AT/blob/master/examples/HTTPPOST.ino)
+- [ConnectWiFi.ino](https://github.com/qoosky/Arduino_HttpClient_ESP8266_AT/blob/master/examples/ConnectWiFi/ConnectWiFi.ino)
+- [HTTPGET.ino](https://github.com/qoosky/Arduino_HttpClient_ESP8266_AT/blob/master/examples/HTTPGET/HTTPGET.ino)
+- [HTTPPOST.ino](https://github.com/qoosky/Arduino_HttpClient_ESP8266_AT/blob/master/examples/HTTPPOST/HTTPPOST.ino)
